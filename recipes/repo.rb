@@ -42,6 +42,25 @@ when 'rhel'
     gpgcheck false
     only_if { node['uchiwa']['add_repo'] }
   end
+when 'amazon'
+  rhel_version = nil
+  if /201\d/.match?(node["platform_version"])
+    rhel_version = 6
+  elsif platform_version == "2" || platform_version.include?("amzn2")
+    rhel_version = 7
+  else
+    raise "Unsupported version of amazon linux #{node["platform_version"]}. Aborting."
+  end
+
+  package_options = '--nogpgcheck'
+  branch = node['uchiwa']['use_unstable_repo'] ? 'yum-unstable' : 'yum'
+
+  yum_repository 'uchiwa' do
+    description 'Uchiwa repository'
+    baseurl "#{node['uchiwa']['yum_repo_url']}/#{branch}/#{rhel_version}/$basearch/"
+    gpgcheck false
+    only_if { node['uchiwa']['add_repo'] }
+  end
 else
   raise "Unsupported platform family #{platform_family}. Aborting."
 end
